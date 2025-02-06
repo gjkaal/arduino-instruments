@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CockpitTimer.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "start"
+    }
+  }
+}
