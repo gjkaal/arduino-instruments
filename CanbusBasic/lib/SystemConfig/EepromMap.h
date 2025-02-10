@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 // Mapping of EEPROM addresses
 // Max 512 bytes of EEPROM memory
 // Hex value 0x200
@@ -13,3 +14,7 @@
 // Define the EEPROM addresses for the gauge speed (word = 2 byte)
 #define EEPROM_GAUGE_SPEED 0x0102
 #define EEPROM_GAUGE_SPEED_END 0x0103
+
+// Address for CAN bus interval (word)
+#define EEPROM_CAN_INTERVAL 0x0104
+#define EEPROM_CAN_INTERVAL_END 0x0105

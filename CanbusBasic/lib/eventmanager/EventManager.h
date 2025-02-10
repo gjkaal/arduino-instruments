@@ -46,15 +46,17 @@
 #endif
 
 // Size of the listener list.  Adjust as appropriate for your application.
-// Requires a total of sizeof(*f())+sizeof(int)+sizeof(boolean) bytes of RAM for each unit of size
+// Requires a total of sizeof(*f())+sizeof(int)+sizeof(boolean) bytes of RAM for each unit of size 
+// (multiples of 8)
 #ifndef EVENTMANAGER_LISTENER_LIST_SIZE
-#define EVENTMANAGER_LISTENER_LIST_SIZE		8
+#define EVENTMANAGER_LISTENER_LIST_SIZE		32
 #endif
 
 // Size of the event two queues.  Adjust as appropriate for your application.
 // Requires a total of 4 * sizeof(int) bytes of RAM for each unit of size
+// (multiples of 4)
 #ifndef EVENTMANAGER_EVENT_QUEUE_SIZE
-#define EVENTMANAGER_EVENT_QUEUE_SIZE		8
+#define EVENTMANAGER_EVENT_QUEUE_SIZE		32
 #endif
 
 
@@ -140,6 +142,8 @@ public:
 
         // Request for data
         kEventRequestData,
+        kEventCanDataReceived,
+        kEventCanDataLost,
     };
 
 
@@ -413,7 +417,7 @@ inline int EventManager::getNumEventsInQueue( EventPriority pri )
     return ( pri == kHighPriority ) ? mHighPriorityQueue.getNumEvents() : mLowPriorityQueue.getNumEvents();
 }
 
-inline boolean EventManager::queueEvent( int eventCode, int eventParam, EventPriority pri )
+inline boolean EventManager::queueEvent(int eventCode, int eventParam, EventPriority pri )
 {
     return ( pri == kHighPriority ) ?
         mHighPriorityQueue.queueEvent( eventCode, eventParam ) : mLowPriorityQueue.queueEvent( eventCode, eventParam );
