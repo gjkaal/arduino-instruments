@@ -22,11 +22,46 @@ void dataReceived(int event, int param)
   // Read the data and process it
   while(param > 0)
   {
-    char* data = canSensor.readMessage();
+    unsigned char* data = canSensor.readMessage();
     if(data != NULL)
     {
+      uint8_t dataType = data[1];
       // Process the data
-      Serial.println("Message received: " + String(data));
+      switch (data[0])
+      {
+        case Canbus::kMessageTypeInteger:
+          int value = (data[2] << 8) | data[3];
+          switch (dataType)
+          {
+            case SENSOR_ALTIMETER:
+            /* code */
+            break;          
+          default:
+            break;
+          }
+          break;
+        case Canbus::kMessageTypeFloat:
+          /* code */
+          break;
+        case Canbus::kMessageTypeFailure:
+          /* code */
+          break;
+        case Canbus::kMessageTypeString:
+          /* code */
+          break;
+        default:
+          break;
+      }
+
+      Serial.println("Type: " + String(data[0]));
+      for(int i = 1; i < 8; i++)
+      {
+        unsigned char c = data[i];
+        Serial.print(" ");
+        Serial.print(c, HEX);
+      }
+      Serial.println();
+      Serial.println();
     }
     else
     {
@@ -43,7 +78,9 @@ void setup() {
 
   // find the id or define it here
   // Now 0x01 is the id for this item
-  canSensor.begin(0x01, Canbus::Clock16MHZ);
+
+  // On nano, clock is 8Mhz
+  canSensor.begin(0x02, Canbus::Clock8MHZ);
 
   // Initialize the gauge with a speed of 100
   //gauge.begin();
@@ -74,7 +111,7 @@ void loop() {
       digitalWrite(LED_BUILTIN, LOW);   
   }
 
-    // print a random number from 10 to 19
+  // print a random number from 10 to 19
   //int randNumber = random(0, stepsPerRev * 2 - stepsPerRev);
   //gauge.setTargetValue(randNumber);
 }

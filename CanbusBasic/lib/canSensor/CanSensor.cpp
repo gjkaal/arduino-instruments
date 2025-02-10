@@ -39,9 +39,11 @@ namespace Canbus {
         // Initialize
         int retryCount = 0;
         this->sensorId = 0x100 | (identifier & 0x0F);
-        Serial.println("Starting CAN");
-        Serial.println("Id       : " + String(sensorId));
-        Serial.println("Interval : " + String(interval));
+        Serial.println(F("Starting CAN"));
+        Serial.print(F("Id       : "));
+        Serial.println(sensorId);
+        Serial.print(F("Interval : "));
+        Serial.println(interval);
 
         // Initialize the CAN bus using the correct clock (16 / 8)
         while (CAN_OK != CAN.begin(MCP_ANY, CAN_100KBPS, clockSpeed) && retryCount<10) { 
@@ -55,12 +57,12 @@ namespace Canbus {
 
         if(retryCount>=10)
         {
-            Serial.println("CAN failed!");
+            Serial.println(F("CAN failed!"));
             initFailed = true;
         }
         else
         {            
-            Serial.println("CAN 100KBPS");
+            Serial.println(F("CAN 100KBPS"));
             unsigned char data[5] = { 0xAA, 'H', 'E', 'L', 'O'};
             // send data:  id = 0x00, standrad frame, data len = 4, data: data buf
             CAN.sendMsgBuf(sensorId, 0, 5, data);
@@ -235,7 +237,10 @@ and make opposite operation on the receiver side:
             // Both values are positive
             if (frameReceived == CAN_MSGAVAIL) 
             {
-
+                for(int i = 0; i < 8; i++)
+                {
+                    msg[i] = 0;
+                }
                 CAN.readMsgBuf(&rxId, &len, msg);
 
                 if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
@@ -263,7 +268,7 @@ and make opposite operation on the receiver side:
                     if (remoteRequest) {
                         if(!eventManager.queueEvent(EventManager::EventType::kEventRequestData, 0))
                         {
-                            Serial.println("ERR: queue remoteRequest");
+                            Serial.println(F("ERR: queue remoteRequest"));
                         };
                     } 
                     else if (len > 0) 
@@ -281,25 +286,26 @@ and make opposite operation on the receiver side:
                                     {
                                         data[i] = msg[i+2];
                                     }
-                                    data[len-2] = '\0';
                                     handleCommand(data);
                                 }
                                 // else ignore the command
                                 else{
+                                    #ifdef DEBUG
                                     Serial.println("IGN: SensorId " + String(checkSensor));
+                                    #endif
                                 }
                             }                            
                             else
                             {
                                 // invalid command, no remoteId
-                                Serial.println("ERR: cmd invalid");
+                                Serial.println(F("ERR: cmd invalid"));
                             }
                         }        
                         else
                         {
                             // push the data on the stack
                             // if the stack is overflown, send an event
-                            fifo.push((char*)msg);
+                            fifo.push(msg);
                             eventManager.queueEvent(EventManager::EventType::kEventCanDataReceived, fifo.count());
                             if(fifo.overFlow()){
                                 eventManager.queueEvent(EventManager::EventType::kEventCanDataLost, 1);
@@ -308,7 +314,7 @@ and make opposite operation on the receiver side:
                     }           
                     else
                     {
-                        Serial.println("???");
+                        Serial.println(F("???"));
                     }                    
                     delay(100);
                 }            
@@ -316,9 +322,9 @@ and make opposite operation on the receiver side:
         }
     }
 
-    char* CanSensor::readMessage()
+    unsigned char* CanSensor::readMessage()
     {
-        static char data[8];
+        static unsigned char data[8];
         if(fifo.pop(data))
         {
             return data;
@@ -330,7 +336,8 @@ and make opposite operation on the receiver side:
     {
         // handle the command message
         // msg[0] is the command type
-        Serial.println("RVC: " + String(msg[0]));
+        Serial.print(F("RVC: "));
+        Serial.println(msg[0]);
         if(msg[0] == SET_SETTING_VALUE)
         {
             // set the interval

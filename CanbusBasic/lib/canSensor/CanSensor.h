@@ -20,7 +20,7 @@ namespace Canbus {
             byte sendMemValue(int address, int data);
             int getInterval();
             int setInterval(int interval);
-            char* readMessage();
+            unsigned char* readMessage();
             EventManager eventManager;
         private:
             // Identifier for the sensor

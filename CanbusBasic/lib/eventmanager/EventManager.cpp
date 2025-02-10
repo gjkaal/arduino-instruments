@@ -30,8 +30,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
-
-
 #include "EventManager.h"
 
 namespace
@@ -553,13 +551,7 @@ int EventManager::ListenerList::searchEventCode( int eventCode )
     return -1;
 }
 
-
-
 /******************************************************************************/
-
-
-
-
 EventManager::EventQueue::EventQueue() :
 mEventQueueHead( 0 ),
 mEventQueueTail( 0 ),

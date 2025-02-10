@@ -14,16 +14,12 @@ namespace fifoQueue {
         }        
     }
 
-    boolean fifoQueue::Queue::push(char* data )
+    boolean fifoQueue::Queue::push(unsigned char* data )
     {
         // Copy the data to the queue
         for (size_t i = 0; i < QUEUE_ITEM_SIZE; i++)
         {
-            mQueue[mQueueTail] = data[i];
-            if(data[i] == '\0')
-            {
-                break;
-            }
+            mQueue[mQueueTail + i] = data[i];
         }
         mQueueTail = (mQueueTail + QUEUE_ITEM_SIZE) % kQueueSize;
 
@@ -38,7 +34,7 @@ namespace fifoQueue {
         return true;
     }
 
-    boolean fifoQueue::Queue::pop(char* data)
+    boolean fifoQueue::Queue::pop(unsigned char* data)
     {
         if ( isEmpty() )
         {
@@ -47,11 +43,7 @@ namespace fifoQueue {
         // Copy the data from the queue
         for (size_t i = 0; i < QUEUE_ITEM_SIZE; i++)
         {
-            data[i] = mQueue[mQueueHead];
-            if(data[i] == '\0')
-            {
-                break;
-            }
+            data[i] = mQueue[mQueueHead + i];
         }
         mQueueHead = (mQueueHead + QUEUE_ITEM_SIZE) % kQueueSize;
         overFlowValue = false;

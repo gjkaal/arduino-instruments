@@ -21,10 +21,10 @@ namespace fifoQueue
         Queue();
 
         // Add an item to the queue
-        boolean push(char* data );
+        boolean push(unsigned char* data );
 
         // Remove an item from the queue
-        boolean pop(char* data);
+        boolean pop(unsigned char* data);
 
         // Check if the queue is overflown
         boolean overFlow();
