@@ -1,19 +1,41 @@
 #include "main.h"
-
 // Define the gauge type and pins
 //Gauge::AutoGauge gauge(Gauge::X27_168, 5,6,7,8);
 //int stepsPerRev = gauge.StepsPerRevolution(Gauge::X27_168);
 //int startMillis = millis();
+
+int altimeter = 0;
+float temperatures[SENSOR_TEMPERATURE_END - SENSOR_TEMPERATURE];
 
 void remoteRequest(int event, int param)
 {
   // Remote request for data
 }
 
-void dataLost(int event, int param)
+void canError(int event, int param)
 {
   // Data lost in the fifo stack of the canbus
   Serial.println("Data lost");
+}
+
+float ToFloat(uint8_t b0, uint8_t b1, uint8_t b2, uint8_t b3)
+{
+  float fValue = 0.0;
+  uint8_t* p = (uint8_t*)&fValue;
+  p[0] = b0;
+  p[1] = b1;
+  p[2] = b2;
+  p[3] = b3;
+  return fValue;
+}
+
+float ToInt(uint8_t b0, uint8_t b1)
+{
+  int iValue = 0;
+  uint8_t* p = (uint8_t*)&iValue;
+  p[0] = b0;
+  p[1] = b1;
+  return iValue;
 }
 
 void dataReceived(int event, int param)
@@ -23,50 +45,57 @@ void dataReceived(int event, int param)
   while(param > 0)
   {
     unsigned char* data = canSensor.readMessage();
+    int iValue=0;
+    float fValue=0.0;
+    uint8_t dataType = 0;
+    bool validData = false;
+    char strValue[50];
+    memset(strValue, 0, sizeof(strValue));
+
     if(data != NULL)
     {
-      uint8_t dataType = data[1];
+      dataType = data[1];
       // Process the data
       switch (data[0])
       {
-        case Canbus::kMessageTypeInteger:
-          int value = (data[2] << 8) | data[3];
-          switch (dataType)
+        case Canbus::kMessageTypeInteger:          
+          iValue = ToInt(data[2], data[3]);
+          if(dataType == SENSOR_ALTIMETER)
           {
-            case SENSOR_ALTIMETER:
-            /* code */
-            break;          
-          default:
-            break;
+            altimeter = iValue;
+            validData = true;
+            strcat(strValue, "Altimeter ");
+            strcat(strValue, String(iValue).c_str());
           }
           break;
-        case Canbus::kMessageTypeFloat:
-          /* code */
-          break;
-        case Canbus::kMessageTypeFailure:
-          /* code */
-          break;
-        case Canbus::kMessageTypeString:
-          /* code */
+        case Canbus::kMessageTypeFloat:          
+          fValue = ToFloat(data[2], data[3], data[4], data[5]);
+          if(dataType>= SENSOR_TEMPERATURE && dataType < SENSOR_TEMPERATURE_END)
+          {
+            temperatures[dataType - SENSOR_TEMPERATURE] = fValue;
+            validData = true;
+            strcat(strValue, "Temperature");
+            strcat(strValue, String(dataType - SENSOR_TEMPERATURE).c_str());
+            strcat(strValue, " ");
+            strcat(strValue, String(fValue).c_str());
+          }          
           break;
         default:
           break;
       }
-
-      Serial.println("Type: " + String(data[0]));
-      for(int i = 1; i < 8; i++)
-      {
-        unsigned char c = data[i];
-        Serial.print(" ");
-        Serial.print(c, HEX);
-      }
-      Serial.println();
-      Serial.println();
     }
     else
     {
       // No data available
-      Serial.println("No data available");
+      Serial.println(F("No data available"));
+    }
+    if(validData)
+    {
+      // Data is valid
+      Serial.print(F("Data received: "));
+      Serial.print(dataType);
+      Serial.print(' ');
+      Serial.println(strValue);
     }
     param--;
   }  
@@ -79,15 +108,15 @@ void setup() {
   // find the id or define it here
   // Now 0x01 is the id for this item
 
-  // On nano, clock is 8Mhz
-  canSensor.begin(0x02, Canbus::Clock8MHZ);
+  // On nano, clock is 8Mhz, no startup message
+  canSensor.begin(0x02, Canbus::Clock8MHZ, false);
 
   // Initialize the gauge with a speed of 100
   //gauge.begin();
 
   canSensor.eventManager.addListener(EventManager::EventType::kEventRequestData, remoteRequest);
   canSensor.eventManager.addListener(EventManager::EventType::kEventCanDataReceived, dataReceived);
-  canSensor.eventManager.addListener(EventManager::EventType::kEventCanDataLost, dataLost);
+  canSensor.eventManager.addListener(EventManager::EventType::kEventCanDataError, canError);
   
   // use noise to seed the random number generator
   randomSeed(analogRead(0));

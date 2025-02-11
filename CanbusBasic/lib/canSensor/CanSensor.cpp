@@ -5,6 +5,7 @@
 #include <EepromMap.h>
 #include <Commands.h>
 #include <Queue.h>
+#include <EEPROM.h>
 #include "CanSensor.h"
 
 namespace Canbus {
@@ -28,7 +29,7 @@ namespace Canbus {
     CanSensor::CanSensor() {       
     }
 
-    bool CanSensor::begin(uint8_t identifier, byte clockSpeed)
+    bool CanSensor::begin(uint8_t identifier, byte clockSpeed, bool startupMessage)
     {        
         // Read the interval from the EEPROM
         EEPROM.get(EEPROM_GAUGE_ZERO_OFFSET, interval);
@@ -39,16 +40,20 @@ namespace Canbus {
         // Initialize
         int retryCount = 0;
         this->sensorId = 0x100 | (identifier & 0x0F);
-        Serial.println(F("Starting CAN"));
-        Serial.print(F("Id       : "));
-        Serial.println(sensorId);
-        Serial.print(F("Interval : "));
-        Serial.println(interval);
+        
+        if(startupMessage){
+            Serial.println(F("Starting CAN"));
+            Serial.print(F("Id       : "));
+            Serial.println(sensorId);
+            Serial.print(F("Interval : "));
+            Serial.println(interval);
+        }
 
         // Initialize the CAN bus using the correct clock (16 / 8)
         while (CAN_OK != CAN.begin(MCP_ANY, CAN_100KBPS, clockSpeed) && retryCount<10) { 
             retryCount++;
-            Serial.println(" Retry " + String(retryCount));
+            if(startupMessage)
+                Serial.println(" Retry " + String(retryCount));
             delay(300);
         }
 
@@ -57,12 +62,15 @@ namespace Canbus {
 
         if(retryCount>=10)
         {
-            Serial.println(F("CAN failed!"));
+            if(startupMessage)
+                Serial.println(F("CAN failed!"));
             initFailed = true;
+            eventManager.queueEvent(EventManager::EventType::kEventCanDataError, CAN_ERROR_INIT_FAILED);
         }
         else
-        {            
-            Serial.println(F("CAN 100KBPS"));
+        {          
+            if(startupMessage)
+                Serial.println(F("CAN 100KBPS"));
             unsigned char data[5] = { 0xAA, 'H', 'E', 'L', 'O'};
             // send data:  id = 0x00, standrad frame, data len = 4, data: data buf
             CAN.sendMsgBuf(sensorId, 0, 5, data);
@@ -194,10 +202,6 @@ and make opposite operation on the receiver side:
         // Copy the data to the message
         for (size_t i = 0; i < 5; i++)
         {
-            if(data[i] == '\0')
-            {
-                break;
-            }
             msg[i + 2] = data[i];
         }        
 
@@ -237,10 +241,7 @@ and make opposite operation on the receiver side:
             // Both values are positive
             if (frameReceived == CAN_MSGAVAIL) 
             {
-                for(int i = 0; i < 8; i++)
-                {
-                    msg[i] = 0;
-                }
+                memset(msg, 0, 8);
                 CAN.readMsgBuf(&rxId, &len, msg);
 
                 if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
@@ -266,10 +267,7 @@ and make opposite operation on the receiver side:
                     }
 
                     if (remoteRequest) {
-                        if(!eventManager.queueEvent(EventManager::EventType::kEventRequestData, 0))
-                        {
-                            Serial.println(F("ERR: queue remoteRequest"));
-                        };
+                        eventManager.queueEvent(EventManager::EventType::kEventRequestData, 0);
                     } 
                     else if (len > 0) 
                     {
@@ -289,16 +287,11 @@ and make opposite operation on the receiver side:
                                     handleCommand(data);
                                 }
                                 // else ignore the command
-                                else{
-                                    #ifdef DEBUG
-                                    Serial.println("IGN: SensorId " + String(checkSensor));
-                                    #endif
-                                }
                             }                            
                             else
                             {
                                 // invalid command, no remoteId
-                                Serial.println(F("ERR: cmd invalid"));
+                                eventManager.queueEvent(EventManager::EventType::kEventCanDataError, CAN_ERROR_INVALID_COMMAND);
                             }
                         }        
                         else
@@ -308,13 +301,13 @@ and make opposite operation on the receiver side:
                             fifo.push(msg);
                             eventManager.queueEvent(EventManager::EventType::kEventCanDataReceived, fifo.count());
                             if(fifo.overFlow()){
-                                eventManager.queueEvent(EventManager::EventType::kEventCanDataLost, 1);
+                                eventManager.queueEvent(EventManager::EventType::kEventCanDataError, CAN_ERROR_DATA_LOST);
                             }                        
                         }   
                     }           
                     else
                     {
-                        Serial.println(F("???"));
+                        eventManager.queueEvent(EventManager::EventType::kEventCanDataError, CAN_ERROR_ZERO_LENGTH);
                     }                    
                     delay(100);
                 }            

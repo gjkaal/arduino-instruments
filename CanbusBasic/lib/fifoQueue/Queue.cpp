@@ -8,10 +8,7 @@ namespace fifoQueue {
         mQueueTail = 0;
         mNumItems = 0;
         /// Initialize the queue
-        for ( int i = 0; i < kQueueSize; i++ )
-        {
-            mQueue[i]= 0x00;
-        }        
+        memset(mQueue, 0x00, sizeof(mQueue));
     }
 
     boolean fifoQueue::Queue::push(unsigned char* data )
@@ -36,7 +33,7 @@ namespace fifoQueue {
 
     boolean fifoQueue::Queue::pop(unsigned char* data)
     {
-        if ( isEmpty() )
+        if (isEmpty())
         {
             return false;
         }

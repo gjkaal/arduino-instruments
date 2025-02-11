@@ -1,6 +1,11 @@
 #pragma once
 #include <EventManager.h>
 
+#define CAN_ERROR_INVALID_COMMAND 0x01
+#define CAN_ERROR_DATA_LOST 0x02
+#define CAN_ERROR_ZERO_LENGTH 0x03
+#define CAN_ERROR_INIT_FAILED 0x04
+
 // CanSensor class is used as a wrapper for the Canbus library
 // It is used to send sensor data over the Canbus network
 // Each sensor has a unique identifier
@@ -8,7 +13,7 @@ namespace Canbus {
     class CanSensor {   
         public:
             CanSensor();
-            bool begin(uint8_t identifier, byte clockSpeed);
+            bool begin(uint8_t identifier, byte clockSpeed, bool startupMessage);
             bool initialized();
             bool errorOccured();
             void loop();
@@ -49,5 +54,5 @@ namespace Canbus {
         kMessageTypeFailure = 'E',
         kMessageMemValue = 'M',
         kMessageInitialized = 0xBB,
-    };
+    };    
 }

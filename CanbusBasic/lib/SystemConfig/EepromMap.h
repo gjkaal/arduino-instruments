@@ -1,4 +1,3 @@
-#include <EEPROM.h>
 // Mapping of EEPROM addresses
 // Max 512 bytes of EEPROM memory
 // Hex value 0x200

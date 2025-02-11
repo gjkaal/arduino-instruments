@@ -143,7 +143,7 @@ public:
         // Request for data
         kEventRequestData,
         kEventCanDataReceived,
-        kEventCanDataLost,
+        kEventCanDataError,
     };
 
 

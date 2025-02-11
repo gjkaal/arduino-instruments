@@ -4,6 +4,8 @@
 #include <CanSensor.h>
 #include <GaugeDisplay.h>
 #include <SensorTypes.h>
+#include <string.h>
+#include <EepromMap.h>
 
 unsigned long lastTimerEvent = 0;
 // Define the canbus object
