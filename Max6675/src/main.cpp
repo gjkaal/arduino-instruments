@@ -1,9 +1,9 @@
 #include "max6675.h"
 #include <SPI.h>
 
-int thermoDO = 6;
-int thermoCS = 5;
-int thermoCLK = 4;
+// int thermoDO = 6;
+// int thermoCS = 5;
+// int thermoCLK = 4;
 
 MAX6675 thermocouple;
 //int vccPin = 3;
@@ -15,7 +15,7 @@ void setup() {
   // use Arduino pins for software SPI
   // thermocouple.begin(thermoCLK, thermoCS, thermoDO);
 
-  // use hardware SPI
+  // use hardware SPI (CS port 10)
   SPI.begin();
   thermocouple.begin(10);
 

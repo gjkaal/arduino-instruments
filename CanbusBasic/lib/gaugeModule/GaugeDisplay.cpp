@@ -52,21 +52,15 @@ namespace Gauge {
             gaugeSpeed = DEFAULT_SPEED;
         }
         gaugeStepper.setSpeed(gaugeSpeed);
-        Serial.println("Init gauge stepper, steps:" + String(maxSteps) + ", speed:" + String(gaugeSpeed));
     }
 
     bool AutoGauge::begin() {
-        Serial.println("Init gauge");
-
         // Initialize the stepper motor and set the speed
         /// loop to max and minimum value, then to zero offset
-        Serial.println("Move to max " + String(maxSteps));
         gaugeStepper.step(maxSteps);
         delay(RESPONSE_TIME);
-        Serial.println("Move to min");
         gaugeStepper.step(-maxSteps);
         delay(RESPONSE_TIME);
-        Serial.println("Move to zero " + String(zeroOffset));
         gaugeStepper.step(zeroOffset);
         delay(RESPONSE_TIME);
         currentValue = 0;
@@ -94,20 +88,16 @@ namespace Gauge {
             
             // check if new value in range            
             actualValue = targetValue + zeroOffset;
-            Serial.println("move to: " + String(actualValue)); 
             int moveToValue = actualValue;
             if(moveToValue < 0) {
-                Serial.println("Value out of range: " + String(moveToValue));                
                 moveToValue = 0;
             }
             if(moveToValue > maxSteps) {
-                Serial.println("Value out of range: " + String(moveToValue));
                 moveToValue = maxSteps;
             }
             int diff = moveToValue - gaugeValue;
             gaugeStepper.step(diff);
             gaugeValue = moveToValue;
-            Serial.println("Current gauge Value: " + String(gaugeValue));
             // Move to the target value
             currentValue = targetValue;
         }
@@ -128,6 +118,4 @@ namespace Gauge {
     int AutoGauge::getSpeed() {
         return gaugeSpeed;
     }
-
-
 }

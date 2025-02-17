@@ -55,7 +55,13 @@ class CommandHandler {
       ;
     };
 
-    void begin(char *buffer, int bufferLength, CommandOption *options, int optionsLength, void (*unknownCommandCallback)(const char*, Stream&) = NULL, void (*commandTooLongCallback)(Stream&) = NULL);
+    void begin(
+      char *buffer, 
+      int bufferLength, 
+      CommandOption *options, 
+      int optionsLength, 
+      void (*unknownCommandCallback)(const char*, Stream&) = NULL, 
+      void (*commandTooLongCallback)(Stream&) = NULL);
     bool process(Stream &stream);
     void resetBuffer();
 

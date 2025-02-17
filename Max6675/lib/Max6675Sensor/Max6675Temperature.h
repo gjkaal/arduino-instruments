@@ -22,9 +22,4 @@ namespace Max6675Sensor {
             unsigned long lastTimerEvent = 0;
     };
 
-    enum ClockSpeed{
-        Clock20MHZ = 0x00,
-        Clock16MHZ = 0x01,
-        Clock8MHZ = 0x02,
-    };
 }
