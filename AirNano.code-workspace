@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "AirNano",
+			"path": "AirNano"
+		},
+		{
+			"path": "CanbusBasic"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"max6675temperature": "cpp"
+		}
+	}
+}
